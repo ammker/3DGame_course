@@ -114,7 +114,7 @@ public class GameView
         // 如果游戏结束，显示提示信息和重启按钮
         if (GameOver)
         {
-            GUILayout.Label("Game Over!"); // 游戏结束提示
+            GUILayout.Label("Game Over!"); 
             if (GUILayout.Button("Restart"))
             {
                 // 触发重启游戏的事件
@@ -138,14 +138,28 @@ public class GameController
         this.model = model;
         this.view = view;
 
-        // 订阅View的点击事件
-        this.view.OnIconClicked += HandleIconClick;
+        this.view.OnIconClicked += HandleIconClick; // 订阅View的点击事件
         this.view.OnRestartRequested += RestartGame; // 订阅重启事件
     }
 
     // 处理图案点击事件
     private void HandleIconClick(int x, int y)
     {
+        //检查是否重复
+        if (selectedX == x && selectedY == y)
+        {
+            Debug.Log("Cannot select the same icon twice.");
+            selectedX = null;
+            selectedY = null;
+            return; 
+        }
+        // 检查第一次点击的图案是否已消除
+        if (model.IsCleared[x, y])
+        {
+            Debug.Log("Cannot select a cleared icon.");
+            return; 
+        }
+
         if (selectedX == null && selectedY == null)
         {
             // 如果没有选择图案，记录第一次点击的位置
@@ -174,6 +188,8 @@ public class GameController
             view.GameOver = true; // 设置游戏结束状态
         }
     }
+
+
 
     // 重启游戏
     private void RestartGame()
