@@ -1,5 +1,7 @@
 using UnityEngine;
-public class GameModel : MonoBehaviour
+using System.Collections.Generic;
+
+public class GameModel
 {
     public int[,] Grid { get; private set; } // 图案矩阵
     public bool[,] IsCleared { get; private set; } // 消除状态矩阵
@@ -13,16 +15,38 @@ public class GameModel : MonoBehaviour
         GenerateGrid();
     }
 
-    // 随机生成图案矩阵
     private void GenerateGrid()
     {
+        List<int> iconList = new List<int>();
+        int totalCells = gridSize * gridSize;
+        // 添加每种图案的成对元素
+        for (int i = 1; i <= totalCells / 2; i++)
+        {
+            int icon = (i % iconTypes) + 1; // 确保图案编号在iconTypes范围内
+            iconList.Add(icon); // 添加第一个图案
+            iconList.Add(icon); // 添加第二个图案
+        }
+
+        // 打乱图案列表顺序
         System.Random rand = new System.Random();
+        for (int i = iconList.Count - 1; i > 0; i--)
+        {
+            int j = rand.Next(i + 1);
+            // 交换 iconList[i] 和 iconList[j]
+            int temp = iconList[i];
+            iconList[i] = iconList[j];
+            iconList[j] = temp;
+        }
+
+        // 将打乱后的图案列表填充到矩阵中
+        int index = 0;
         for (int i = 0; i < gridSize; i++)
         {
             for (int j = 0; j < gridSize; j++)
             {
-                Grid[i, j] = rand.Next(1, iconTypes + 1); // 图案从1到iconTypes
-                IsCleared[i, j] = false; // 初始化时没有任何消除
+                Grid[i, j] = iconList[index];
+                IsCleared[i, j] = false; 
+                index++;
             }
         }
     }
@@ -38,6 +62,20 @@ public class GameModel : MonoBehaviour
         }
         return false;
     }
+
+    // 检查游戏是否结束
+    public bool IsGameOver()
+    {
+        for (int i = 0; i < Grid.GetLength(0); i++)
+        {
+            for (int j = 0; j < Grid.GetLength(1); j++)
+            {
+                if (!IsCleared[i, j])
+                    return false;
+            }
+        }
+        return true;
+    }
 }
 
 public class GameView
@@ -46,6 +84,7 @@ public class GameView
     public event IconClickHandler OnIconClicked;
 
     private int buttonSize = 50; // 图标按钮的大小
+    public bool GameOver { get; set; } // 游戏是否结束标志
 
     // 绘制整个图案矩阵
     public void DrawGrid(int[,] grid, bool[,] isCleared)
@@ -71,7 +110,19 @@ public class GameView
             }
             GUILayout.EndHorizontal();
         }
+
+        // 如果游戏结束，显示提示信息和重启按钮
+        if (GameOver)
+        {
+            GUILayout.Label("Game Over!"); // 游戏结束提示
+            if (GUILayout.Button("Restart"))
+            {
+                // 触发重启游戏的事件
+                OnRestartRequested?.Invoke();
+            }
+        }
     }
+    public event System.Action OnRestartRequested; // 重启游戏事件
 }
 
 public class GameController
@@ -89,6 +140,7 @@ public class GameController
 
         // 订阅View的点击事件
         this.view.OnIconClicked += HandleIconClick;
+        this.view.OnRestartRequested += RestartGame; // 订阅重启事件
     }
 
     // 处理图案点击事件
@@ -115,6 +167,19 @@ public class GameController
             selectedX = null;
             selectedY = null;
         }
+
+        // 检查游戏是否结束
+        if (model.IsGameOver())
+        {
+            view.GameOver = true; // 设置游戏结束状态
+        }
+    }
+
+    // 重启游戏
+    private void RestartGame()
+    {
+        model = new GameModel(); // 重新初始化模型
+        view.GameOver = false; // 重置游戏结束状态
     }
 
     // 更新View
@@ -124,7 +189,6 @@ public class GameController
     }
 }
 
-
 public class GameManager : MonoBehaviour
 {
     private GameModel model;
@@ -133,7 +197,6 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // 初始化MVC组件
         model = new GameModel();
         view = new GameView();
         controller = new GameController(model, view);
@@ -141,7 +204,6 @@ public class GameManager : MonoBehaviour
 
     private void OnGUI()
     {
-        // 每帧更新View
         controller.UpdateView();
     }
 }
