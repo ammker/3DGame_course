@@ -32,12 +32,10 @@ public class ActionController : MonoBehaviour
 
     public void OnRoundStartHandler(int roundnum)
     {
+        Debug.Log("OnRoundStartHandler");
         diskCountinRound = GetDiskCountinRound(roundnum);
-        diskFactory.FreeDisk();
-        while(diskFactory.GetAvailableCount() < diskCountinRound)
-        {
-            diskFactory.AddDisk();
-        }
+        Debug.Log("diskCountinRound is "+ diskCountinRound);
+        diskFactory.PrepareDisk(diskCountinRound);
         SetDisk();
     }
     public int GetDiskCountinRound(int Roundnum)      //获取本轮需要安排的飞碟数

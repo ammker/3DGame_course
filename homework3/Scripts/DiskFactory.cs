@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class DiskFactory : MonoBehaviour
@@ -8,7 +9,9 @@ public class DiskFactory : MonoBehaviour
 
     public List<GameObject> availableList;
     public List<GameObject> usedList;
-    public GameObject Disk;// 飞碟预制体
+    public int nameIndex;
+
+    public GameObject diskPrefab;// 飞碟预制体
     public static DiskFactory GetInstance()
     {
         if (_instance == null)
@@ -21,22 +24,36 @@ public class DiskFactory : MonoBehaviour
 
     public void Initial()
     {
-        Disk = Resources.Load<GameObject>("Assets/Resource/Disk");
+        GameObject diskfrab = GameObject.Find("Disk");
+        //diskPrefab = Instantiate(Resources.Load<GameObject>("Assets/Resource/Disk"));
+        //diskPrefab.name = "prefab";
+        //diskPrefab.AddComponent<DiskData>();
+        //diskPrefab.SetActive(false);
         availableList = new List<GameObject>();
         usedList = new List<GameObject>();
+        nameIndex = 0;
     }
 
     public void AddDisk()       //往列表中添加新的飞碟
     {
         GameObject disk;
-        disk = Instantiate(Disk);
-        DiskData diskComponent = disk.GetComponent<DiskData>();
-        if (diskComponent == null)
-        {
-            disk.AddComponent<DiskData>();
-        }
+        disk = Instantiate(diskPrefab);
+        disk.name = nameIndex.ToString();
+        nameIndex++;
+        disk.AddComponent<DiskData>();
+        disk.GetComponent<DiskData>().Initialize();
         disk.SetActive(false);
         usedList.Add(disk);
+    }
+
+    public void  PrepareDisk(int diskCountinRound)
+    {
+        if (usedList.Count > 0)
+            FreeDisk();
+        while (GetAvailableCount() < diskCountinRound)
+        {
+            AddDisk();
+        }
     }
 
     // 回收飞碟

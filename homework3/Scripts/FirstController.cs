@@ -36,7 +36,7 @@ public class FirstController : MonoBehaviour
         return _instance;
     }
 
-    void Start()
+    void Awake()
     {
         currentState = GameState.NotStarted;
         actionController = ActionController.GetInstance();
@@ -45,7 +45,11 @@ public class FirstController : MonoBehaviour
         diskFactory.Initial();
         Round = 0;
         Score = 0;
-        StartGame();
+    }
+
+    void Start()
+    {
+   
     }
 
     void Update()

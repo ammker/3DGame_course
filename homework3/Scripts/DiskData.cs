@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 
 public enum DiskColor
 {
-    Red,
-    Green, 
-    Blue
+    red,
+    green, 
+    blue
 }
 
 public enum DiskSize
@@ -23,6 +24,7 @@ public class DiskData : MonoBehaviour
     private DiskColor diskColor;
     private DiskSize diskSize;
     private Vector3 location;
+    private Vector3 size;
     public int point;
     public bool isMoving;
     public bool isShow;
@@ -44,13 +46,30 @@ public class DiskData : MonoBehaviour
 
     public void Initialize()
     {
+        UnityEngine.Color color;
+        //随机获取飞碟的颜色和大小
         diskColor = (DiskColor)Random.Range(0, System.Enum.GetValues(typeof(DiskColor)).Length);
 
         diskSize = (DiskSize)Random.Range(0, System.Enum.GetValues(typeof(DiskSize)).Length);
 
-        if (diskColor == DiskColor.Red) point = 1;
-        else if (diskColor == DiskColor.Green) point = 2;
-        else if (diskColor == DiskColor.Blue) point = 3;
+        if (diskColor == DiskColor.red) point = 1;
+        else if (diskColor == DiskColor.green) point = 2;
+        else if (diskColor == DiskColor.blue) point = 3;
+
+        if (diskSize == DiskSize.Big) size = new Vector3(0.84f, 1.68f, 1.4f);
+        else if (diskSize == DiskSize.Small) size = new Vector3(0.48f, 0.16f, 0.8f);
+        else size = new Vector3(0.6f, 0.26f, 1f);
+
+        if (ColorUtility.TryParseHtmlString(diskColor.ToString(), out color))
+                GetComponent<MeshRenderer>().material.color = color;         //设置飞碟的颜色
+        else Debug.Log("设置颜色失败");
+
+        location = new Vector3 (0, 0, 0);
+        // 设置位置
+        transform.position = location;
+
+        // 设置大小
+        transform.localScale = size;
 
         isShow = false;
     }
